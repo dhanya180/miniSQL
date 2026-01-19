@@ -2,8 +2,13 @@ class DataStore:
     def __init__(self):
         self.tables = {}
 
-    def insert_table(self, name, rows):
-        self.tables[name] = rows
-
     def get_rows(self, name):
-        return self.tables.get(name, [])
+        rows = self.tables.get(name)
+        if rows is None:
+            return []
+        return rows
+
+    def insert_row(self, table, row):
+        if table not in self.tables:
+            self.tables[table] = []
+        self.tables[table].append(row)

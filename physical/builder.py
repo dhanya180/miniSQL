@@ -1,36 +1,10 @@
-# from logical.logical_plan import (
-#     LogicalScan,
-#     LogicalFilter,
-#     LogicalProject,
-# )
-# from physical.physical_plan import (
-#     SeqScanExec,
-#     FilterExec,
-#     ProjectExec,
-# )
-
-# class PhysicalPlanBuilder:
-#     def build(self, logical_plan):
-#         if isinstance(logical_plan, LogicalScan):
-#             return SeqScanExec(logical_plan.table)
-
-#         if isinstance(logical_plan, LogicalFilter):
-#             child = self.build(logical_plan.child)
-#             return FilterExec(logical_plan.predicate, child)
-
-#         if isinstance(logical_plan, LogicalProject):
-#             child = self.build(logical_plan.child)
-#             return ProjectExec(logical_plan.columns, child)
-
-#         raise Exception("Unknown logical operator")
-
-
-from logical.logical_plan import LogicalScan, LogicalFilter, LogicalProject
-from executor.executor import SeqScanExec, FilterExec, ProjectExec
+from logical.logical_plan import LogicalScan, LogicalFilter, LogicalProject, LogicalInsert
+from executor.executor import SeqScanExec, FilterExec, ProjectExec, InsertExec
 
 class PhysicalPlanBuilder:
-    def __init__(self, datastore):
+    def __init__(self, datastore, catalog):
         self.datastore = datastore
+        self.catalog = catalog
 
     def build(self, plan):
         if isinstance(plan, LogicalScan):
@@ -43,5 +17,13 @@ class PhysicalPlanBuilder:
         if isinstance(plan, LogicalProject):
             child = self.build(plan.child)
             return ProjectExec(plan.columns, child)
+        
+        if isinstance(plan, LogicalInsert):
+            return InsertExec(
+                plan.table,
+                plan.values,
+                self.datastore,
+                self.catalog
+            )
 
         raise Exception("Unknown logical plan")

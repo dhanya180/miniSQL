@@ -3,6 +3,11 @@ from enum import Enum, auto
 class TokenType(Enum):
     CREATE = auto()
     TABLE = auto()
+
+    INSERT = auto()
+    INTO = auto()  
+    VALUES = auto()
+
     SELECT = auto()
     FROM = auto()
     WHERE = auto()

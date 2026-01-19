@@ -6,42 +6,63 @@ from storage.data import DataStore
 from logical.builder import LogicalPlanBuilder
 from logical.optimizer import LogicalOptimizer
 from physical.builder import PhysicalPlanBuilder
+from executor.executor import InsertExec
 
 catalog = Catalog()
 datastore = DataStore()
 
-# sample data
-datastore.insert_table("users", [
-    {"id": 1, "name": "Alice", "age": 22},
-    {"id": 2, "name": "Bob", "age": 17},
-    {"id": 3, "name": "Carol", "age": 30},
-])
+def run(sql: str):
+    lexer = Lexer(sql)
+    tokens = lexer.tokenize()
 
-def run(sql):
-    tokens = Lexer(sql).tokenize()
-    ast = Parser(tokens).parse()
-    SemanticAnalyzer(catalog).analyze(ast)
+    parser = Parser(tokens)
+    ast = parser.parse()
 
-    logical = LogicalPlanBuilder().build(ast)
-    if logical is None:
-        print("✔ DDL processed")
+    semantic = SemanticAnalyzer(catalog)
+    semantic.analyze(ast)
+
+    logical_builder = LogicalPlanBuilder()
+    logical_plan = logical_builder.build(ast)
+
+    if logical_plan is None:
+        print("DDL processed")
         return
+    
+    if logical_plan.__class__.__name__ != "LogicalInsert":
+        optimizer = LogicalOptimizer()
+        logical_plan = optimizer.optimize(logical_plan)
 
-    optimized = LogicalOptimizer().optimize(logical)
-    exec_plan = PhysicalPlanBuilder(datastore).build(optimized)
+    physical_builder = PhysicalPlanBuilder(datastore, catalog)
+    exec_plan = physical_builder.build(logical_plan)
 
     exec_plan.open()
-    print("\nRESULT:")
-    while True:
-        row = exec_plan.next()
-        if row is None:
-            break
-        print(row)
+
+    if isinstance(exec_plan, InsertExec):
+        print("1 row inserted")
+    else:
+        print("RESULT:")
+        while True:
+            row = exec_plan.next()
+            if row is None:
+                break
+            print(row)
+
     exec_plan.close()
 
-if __name__ == "__main__":
+
+def repl():
+    print("MiniSQL (type Ctrl+C to exit)")
     while True:
         try:
-            run(input("minisql> "))
+            sql = input("minisql> ").strip()
+            if not sql:
+                continue
+            run(sql)
+        except KeyboardInterrupt:
+            print("\nBye")
+            break
         except Exception as e:
             print("Error:", e)
+
+if __name__ == "__main__":
+    repl()

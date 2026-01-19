@@ -1,17 +1,18 @@
-from parser.ast import Select
+from parser.ast import Select,  Insert
 from logical.logical_plan import (
     LogicalScan,
     LogicalFilter,
     LogicalProject,
+    LogicalInsert
 )
 
 class LogicalPlanBuilder:
     def build(self, ast):
         if isinstance(ast, Select):
             return self._build_select(ast)
-        else:
-            # CREATE TABLE has no logical plan
-            return None
+        if isinstance(ast, Insert):
+            return LogicalInsert(ast.table, ast.values)
+        return None
 
     def _build_select(self, node):
         plan = LogicalScan(node.table)

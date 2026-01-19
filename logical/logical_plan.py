@@ -1,14 +1,12 @@
 class LogicalPlan:
     pass
 
-
 class LogicalScan(LogicalPlan):
     def __init__(self, table):
         self.table = table
 
     def __repr__(self):
         return f"LogicalScan(table={self.table})"
-
 
 class LogicalFilter(LogicalPlan):
     def __init__(self, predicate, child):
@@ -18,7 +16,6 @@ class LogicalFilter(LogicalPlan):
     def __repr__(self):
         return f"LogicalFilter({self.predicate}, child={self.child})"
 
-
 class LogicalProject(LogicalPlan):
     def __init__(self, columns, child, required=None):
         self.columns = columns
@@ -27,3 +24,11 @@ class LogicalProject(LogicalPlan):
 
     def __repr__(self):
         return f"LogicalProject({self.columns}, child={self.child})"
+    
+class LogicalInsert(LogicalPlan):
+    def __init__(self, table, values):
+        self.table = table
+        self.values = values
+
+    def __repr__(self):
+        return f"LogicalInsert({self.table}, {self.values})"

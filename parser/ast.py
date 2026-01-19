@@ -6,6 +6,13 @@ class CreateTable:
     def __repr__(self):
         return f"CreateTable({self.name}, {self.columns})"
 
+class Insert:
+    def __init__(self, table, values):
+        self.table = table
+        self.values = values
+
+    def __repr__(self):
+        return f"Insert({self.table}, {self.values})"
 
 class Select:
     def __init__(self, columns, table, where):
@@ -15,7 +22,6 @@ class Select:
 
     def __repr__(self):
         return f"Select({self.columns}, {self.table}, {self.where})"
-
 
 class Where:
     def __init__(self, column, op, value):

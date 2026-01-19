@@ -1,14 +1,20 @@
-class ExecNode:
-    def open(self): pass
-    def next(self): pass
-    def close(self): pass
+from lexer.tokens import TokenType
 
+class ExecNode:
+    def open(self):
+        pass
+
+    def next(self):
+        pass
+
+    def close(self):
+        pass
 
 class SeqScanExec(ExecNode):
     def __init__(self, table, datastore):
         self.table = table
         self.datastore = datastore
-        self.rows = None
+        self.rows = []
         self.idx = 0
 
     def open(self):
@@ -24,7 +30,6 @@ class SeqScanExec(ExecNode):
 
     def close(self):
         pass
-
 
 class FilterExec(ExecNode):
     def __init__(self, predicate, child):
@@ -53,16 +58,46 @@ class FilterExec(ExecNode):
     def close(self):
         self.child.close()
 
-
 class ProjectExec(ExecNode):
     def __init__(self, columns, child):
         self.columns = columns
         self.child = child
 
+    def open(self):
+        self.child.open()
+
     def next(self):
         row = self.child.next()
         if row is None:
             return None
-
-        # project only requested columns
         return {c: row[c] for c in self.columns}
+
+    def close(self):
+        self.child.close()
+
+from lexer.tokens import TokenType
+
+class InsertExec(ExecNode):
+    def __init__(self, table, values, datastore, catalog):
+        self.table = table
+        self.values = values
+        self.datastore = datastore
+        self.catalog = catalog
+
+    def open(self):
+        table = self.catalog.get_table(self.table)
+        row = {}
+
+        for (col, col_type), value in zip(table.columns.items(), self.values):
+            if col_type == TokenType.INT:
+                row[col] = int(value)
+            else:
+                row[col] = value
+
+        self.datastore.insert_row(self.table, row)
+
+    def next(self):
+        return None
+
+    def close(self):
+        pass

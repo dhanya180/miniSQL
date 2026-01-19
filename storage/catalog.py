@@ -1,8 +1,7 @@
 class Table:
     def __init__(self, name, columns):
         self.name = name
-        self.columns = columns   # dict: col -> type
-
+        self.columns = columns
 
 class Catalog:
     def __init__(self):
@@ -14,9 +13,7 @@ class Catalog:
 
         col_map = {}
         for col, typ in columns:
-            if col in col_map:
-                raise Exception(f"Duplicate column '{col}'")
-            col_map[col] = typ
+            col_map[col] = typ    
 
         self.tables[name] = Table(name, col_map)
 

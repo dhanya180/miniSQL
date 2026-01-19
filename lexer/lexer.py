@@ -4,6 +4,9 @@ from lexer.tokens import Token, TokenType
 KEYWORDS = {
     "CREATE": TokenType.CREATE,
     "TABLE": TokenType.TABLE,
+    "INSERT": TokenType.INSERT,
+    "INTO": TokenType.INTO,
+    "VALUES": TokenType.VALUES,
     "SELECT": TokenType.SELECT,
     "FROM": TokenType.FROM,
     "WHERE": TokenType.WHERE,

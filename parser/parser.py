@@ -1,5 +1,5 @@
 from lexer.tokens import TokenType
-from parser.ast import CreateTable, Select, Where
+from parser.ast import CreateTable, Insert, Select, Where
 
 class Parser:
     def __init__(self, tokens):
@@ -18,10 +18,11 @@ class Parser:
     def parse(self):
         if self.current().type == TokenType.CREATE:
             return self.parse_create()
-        elif self.current().type == TokenType.SELECT:
+        if self.current().type == TokenType.INSERT:
+            return self.parse_insert()
+        if self.current().type == TokenType.SELECT:
             return self.parse_select()
-        else:
-            raise SyntaxError("Unknown statement")
+        raise SyntaxError("Unknown statement")
 
     def parse_create(self):
         self.eat(TokenType.CREATE)
@@ -36,12 +37,34 @@ class Parser:
             self.eat(TokenType.IDENT)
             col_type = self.current().type
             self.eat(col_type)
-            columns.append((col_name, col_type.name))
+            columns.append((col_name, col_type))
             if self.current().type == TokenType.COMMA:
                 self.eat(TokenType.COMMA)
         self.eat(TokenType.RPAREN)
         self.eat(TokenType.SEMICOLON)
         return CreateTable(name, columns)
+    
+    def parse_insert(self):
+        self.eat(TokenType.INSERT)
+        self.eat(TokenType.INTO)
+
+        table = self.current().value
+        self.eat(TokenType.IDENT)
+
+        self.eat(TokenType.VALUES)
+        self.eat(TokenType.LPAREN)
+
+        values = []
+        while self.current().type != TokenType.RPAREN:
+            values.append(self.current().value)
+            self.eat(self.current().type)
+            if self.current().type == TokenType.COMMA:
+                self.eat(TokenType.COMMA)
+
+        self.eat(TokenType.RPAREN)
+        self.eat(TokenType.SEMICOLON)
+
+        return Insert(table, values)
 
     def parse_select(self):
         self.eat(TokenType.SELECT)
